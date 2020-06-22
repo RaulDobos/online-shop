@@ -1,8 +1,10 @@
 package org.fasttrackit.onlineshop;
 
 import org.fasttrackit.onlineshop.domain.Product;
+import org.fasttrackit.onlineshop.exception.ResourceNotFoundException;
 import org.fasttrackit.onlineshop.service.ProductService;
 import org.fasttrackit.onlineshop.transfer.SaveProductRequest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,46 @@ class ProductServiceIntegrationTests {
 
     @Test
     void createProduct_whenValidRequest_thenReturnCreatedProduct() {
+        createProduct();
+
+    }
+
+
+    @Test
+    void createProduct_whenMissingMandatoryProperties_thenThrowException(){
+        SaveProductRequest request = new SaveProductRequest();
+
+        try {
+            productService.createProduct(request);
+        } catch (Exception e) {
+            assertThat("Unexpected exception thrown", e instanceof ConstraintViolationException);
+        }
+
+    }
+
+    void getProduct_whenExistingProduct_thenReturnProduct() {
+        Product product = createProduct();
+
+        Product response = productService.getProduct(product.getId());
+
+        assertThat(response, notNullValue());
+        assertThat(response.getId(), is(product.getId()));
+        assertThat(response.getId(), greaterThan(0L));
+        assertThat(response.getName(), is(product.getName()));
+        assertThat(response.getPrice(), is(product.getPrice()));
+        assertThat(response.getQuantity(), is(product.getQuantity()));
+        assertThat(response.getDescription(), is(product.getDescription()));
+        assertThat(response.getImageUrl(), is(product.getImageUrl()));
+
+    }
+
+    @Test
+    void getProduct_whenNonExistingProduct_then_throwResourceNotFoundException() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> productService.getProduct(0));
+    }
+
+    private Product createProduct() {
         SaveProductRequest request = new SaveProductRequest();
         request.setName("Phone");
         request.setPrice(500);
@@ -37,19 +79,7 @@ class ProductServiceIntegrationTests {
         assertThat(product.getPrice(), is(request.getPrice()));
         assertThat(product.getQuantity(), is(request.getQuantity()));
 
-    }
-
-    @Test
-    void createProduct_whenMissingMandatoryProperties_thenThrowException(){
-        SaveProductRequest request = new SaveProductRequest();
-
-        try {
-            productService.createProduct(request);
-        } catch (Exception e) {
-            assertThat("Unexpected exception thrown", e instanceof ConstraintViolationException);
-        }
-
-
+        return product;
     }
 
 }
