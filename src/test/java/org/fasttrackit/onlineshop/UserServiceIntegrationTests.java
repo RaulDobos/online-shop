@@ -30,7 +30,7 @@ public class UserServiceIntegrationTests  {
     }
 
     public void getUser_whenExistingUser_thenReturnUser(){
-        User user = createUser();
+        User user = userTestSteps.createUser();
 
         User userResponse = userService.getUser(user.getId());
 
